@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"log/slog"
 
@@ -50,9 +51,8 @@ func (o Option) NewTelegramHandler() slog.Handler {
 
 	err := o.checkInit()
 	if err != nil {
-		// panic here or not?
-		errMsg := fmt.Sprintf("slog-telegram: failed to intialize: %s", o.redactSensitiveInfo(err.Error()))
-		fmt.Println(errMsg)
+		fmt.Println("slog-telegram:", redactToken(err.Error(), o.Token))
+		return nil
 	}
 
 	return &TelegramHandler{
@@ -79,13 +79,7 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 
 	// non-blocking
 	go func() {
-		// TODO: handle error here. Probably log it to stderr?
-		err := h.option.sendMessage(msg)
-
-		if err != nil {
-			errMsg := fmt.Sprintf("slog-telegram: failed to send log: %s", h.option.redactSensitiveInfo(err.Error()))
-			fmt.Println(errMsg)
-		}
+		_ = h.option.sendMessage(msg)
 	}()
 
 	return nil
@@ -110,4 +104,9 @@ func (h *TelegramHandler) WithGroup(name string) slog.Handler {
 		attrs:  h.attrs,
 		groups: append(h.groups, name),
 	}
+}
+
+// it is a good idea to redact tokens from error messages
+func redactToken(errMsg string, token string) string {
+	return strings.ReplaceAll(errMsg, token, "<REDACTED TOKEN>")
 }

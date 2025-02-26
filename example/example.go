@@ -10,9 +10,6 @@ import (
 	slogtelegram "github.com/samber/slog-telegram/v2"
 )
 
-// run with
-// TOKEN=<your token> CHAT_ID=<your chat id> go run example.go
-
 func main() {
 	token := os.Getenv("TOKEN")
 	chatId := os.Getenv("CHAT_ID")
@@ -31,6 +28,5 @@ func main() {
 		With("error", fmt.Errorf("an error")).
 		Error("Hello <b><i>slog</i></b>")
 
-	// as its async, wait for the message to be sent
 	time.Sleep(5 * time.Second)
 }
