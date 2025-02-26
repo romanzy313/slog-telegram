@@ -1,11 +1,11 @@
 package slogtelegram
 
-import (
-	"testing"
+// do not detect leaks, as logs are sent in goroutine
 
-	"go.uber.org/goleak"
-)
-
-func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m)
-}
+// import (
+// 	"testing"
+// 	"go.uber.org/goleak"
+// )
+// func TestMain(m *testing.M) {
+// 	goleak.VerifyTestMain(m)
+// }

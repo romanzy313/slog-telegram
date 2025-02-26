@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"log/slog"
@@ -11,10 +10,10 @@ import (
 )
 
 func main() {
-	token := os.Getenv("TOKEN")
-	chatId := os.Getenv("CHAT_ID")
+	token := "..."
+	chatId := "..."
 
-	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, ChatId: chatId, ParseMode: slogtelegram.ParseModeHTML}.NewTelegramHandler())
+	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, ChatId: chatId}.NewTelegramHandler())
 	logger = logger.With("release", "v1.0.0")
 
 	logger.
@@ -26,7 +25,5 @@ func main() {
 		).
 		With("environment", "dev").
 		With("error", fmt.Errorf("an error")).
-		Error("Hello <b><i>slog</i></b>")
-
-	time.Sleep(5 * time.Second)
+		Error("Hello slog")
 }

@@ -2,9 +2,7 @@ package slogtelegram
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"strings"
 
 	"log/slog"
 
@@ -20,8 +18,6 @@ type Option struct {
 	// ChatId is the id of the chat
 	ChatId string
 
-	// optional: customize Telegram message builder
-	ParseMode ParseMode
 	Converter Converter
 
 	// optional: see slog.HandlerOptions
@@ -49,25 +45,30 @@ func (o Option) NewTelegramHandler() slog.Handler {
 		o.Converter = DefaultConverter
 	}
 
-	err := o.checkInit()
+	if o.HttpClient == nil {
+		o.HttpClient = http.DefaultClient
+	}
+
+	err := checkToken(o.HttpClient, o.Token)
 	if err != nil {
-		fmt.Println("slog-telegram:", redactToken(err.Error(), o.Token))
-		return nil
+		panic(redactToken(err.Error(), o.Token))
 	}
 
 	return &TelegramHandler{
-		option: o,
-		attrs:  []slog.Attr{},
-		groups: []string{},
+		option:     o,
+		attrs:      []slog.Attr{},
+		groups:     []string{},
+		httpClient: o.HttpClient,
 	}
 }
 
 var _ slog.Handler = (*TelegramHandler)(nil)
 
 type TelegramHandler struct {
-	option Option
-	attrs  []slog.Attr
-	groups []string
+	option     Option
+	attrs      []slog.Attr
+	groups     []string
+	httpClient *http.Client
 }
 
 func (h *TelegramHandler) Enabled(_ context.Context, level slog.Level) bool {
@@ -79,7 +80,8 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 
 	// non-blocking
 	go func() {
-		_ = h.option.sendMessage(msg)
+		o := h.option
+		_ = sendMessage(o.HttpClient, o.Token, o.ChatId, msg)
 	}()
 
 	return nil
@@ -106,7 +108,11 @@ func (h *TelegramHandler) WithGroup(name string) slog.Handler {
 	}
 }
 
-// it is a good idea to redact tokens from error messages
-func redactToken(errMsg string, token string) string {
-	return strings.ReplaceAll(errMsg, token, "<REDACTED TOKEN>")
+func (h *TelegramHandler) WithHttpClient(client *http.Client) slog.Handler {
+	return &TelegramHandler{
+		option:     h.option,
+		attrs:      h.attrs,
+		groups:     h.groups,
+		httpClient: client,
+	}
 }

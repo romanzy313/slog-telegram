@@ -8,13 +8,6 @@ import (
 	slogcommon "github.com/samber/slog-common"
 )
 
-type ParseMode = string
-
-const (
-	ParseModeMarkdown ParseMode = "markdown"
-	ParseModeHTML     ParseMode = "html"
-)
-
 var SourceKey = "source"
 
 type Converter func(addSource bool, replaceAttr func(groups []string, a slog.Attr) slog.Attr, loggerAttr []slog.Attr, groups []string, record *slog.Record) string
@@ -31,10 +24,6 @@ func DefaultConverter(addSource bool, replaceAttr func(groups []string, a slog.A
 	message := fmt.Sprintf("#%s %s\n------------\n\n", record.Level.String(), record.Message)
 	message += attrToTelegramMessage("", attrs)
 	return message
-}
-
-type MessageConfig struct {
-	ParseMode ParseMode
 }
 
 func attrToTelegramMessage(base string, attrs []slog.Attr) string {
