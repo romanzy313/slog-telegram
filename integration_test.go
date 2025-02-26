@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package slogtelegram
 
 // run with TOKEN=<token> CHAT_ID=<chatId> go test -tags=integration
