@@ -6,12 +6,32 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
+func checkCredentials(httpClient *http.Client, token, chatId string) error {
+	err := getChat(httpClient, token, chatId)
+
+	if err != nil {
+		// see if this is a token or a chat issue
+		err = getMe(httpClient, token)
+		if err != nil {
+			return fmt.Errorf("invalid token")
+		}
+
+		return fmt.Errorf("invalid chatId")
+	}
+
+	return nil
+}
+
+// these api methods should really return bool, bool. As networking issues should prevent it from starting up?
+// cause i dont want to panic with "invalid token" when http is broken, and not the credentials
+// I guess im gonna put this on hold for now...
 // docs: https://core.telegram.org/bots/api#getme, https://core.telegram.org/bots/api#authorizing-your-bot
 // curl https://api.telegram.org/bot<token>/getMe
-func checkToken(httpClient *http.Client, token string) error {
+func getMe(httpClient *http.Client, token string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/getMe", token)
 
 	resp, err := httpClient.Get(url)
@@ -22,6 +42,26 @@ func checkToken(httpClient *http.Client, token string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("invalid token")
+	}
+
+	return nil
+}
+
+// docs: https://core.telegram.org/bots/api#getchat, https://core.telegram.org/bots/api#authorizing-your-bot
+// curl https://api.telegram.org/bot<token>/getChat
+//
+// Note: this could be used to instead check both the token and chatid
+func getChat(httpClient *http.Client, token, chatId string) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/getChat?chat_id=%s", token, url.QueryEscape(chatId))
+
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return fmt.Errorf("failed to make HTTP request to validate token: %s", err.Error())
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("invalid token or chatId")
 	}
 
 	return nil

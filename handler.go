@@ -38,7 +38,7 @@ func (o Option) NewTelegramHandler() slog.Handler {
 	}
 
 	if o.ChatId == "" {
-		panic("missing Telegram username")
+		panic("missing Telegram chatId")
 	}
 
 	if o.Converter == nil {
@@ -49,7 +49,8 @@ func (o Option) NewTelegramHandler() slog.Handler {
 		o.HttpClient = http.DefaultClient
 	}
 
-	err := checkToken(o.HttpClient, o.Token)
+	// err := checkToken(o.HttpClient, o.Token)
+	err := checkCredentials(o.HttpClient, o.Token, o.ChatId)
 	if err != nil {
 		panic(redactToken(err.Error(), o.Token))
 	}

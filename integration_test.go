@@ -29,11 +29,11 @@ func TestPanicWithInvalidToken(t *testing.T) {
 }
 
 // currently does not work. need to get the full chat in order to verify that chat id is invalid
-// func TestPanicWithInvalidChatId(t *testing.T) {
-// 	assertPanic(t, func() {
-// 		Option{Token: os.Getenv("TOKEN"), ChatId: "lala"}.NewTelegramHandler()
-// 	})
-// }
+func TestPanicWithInvalidChatId(t *testing.T) {
+	assertPanic(t, func() {
+		Option{Token: os.Getenv("TOKEN"), ChatId: "lala"}.NewTelegramHandler()
+	})
+}
 
 func TestSuccessfulInit(t *testing.T) {
 	handler := Option{Token: os.Getenv("TOKEN"), ChatId: os.Getenv("CHAT_ID")}.NewTelegramHandler()
